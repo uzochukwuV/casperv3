@@ -1,10 +1,10 @@
 /// Integration test demonstrating full DEX deployment workflow
-use odra::host::{Deployer, HostRef, NoArgs};
-use odra::casper_types::{U256, U128};
+use odra::host::{Deployer, NoArgs};
+use odra::casper_types::U256;
 use dex_contracts::{
-    factory::{Factory, FactoryHostRef},
-    pool::{Pool, PoolHostRef, PoolInitArgs},
-    position_manager::{PositionManager, PositionManagerHostRef, MintParams, MintResult},
+    factory::Factory,
+    pool::{Pool, PoolInitArgs},
+    position_manager::{PositionManager, PositionManagerInitArgs},
 };
 
 #[test]
@@ -15,8 +15,7 @@ fn test_full_dex_deployment() {
 
     // Step 1: Deploy Factory
     println!("1. Deploying Factory...");
-    let mut factory = FactoryHostRef::deploy(&env, NoArgs);
-    factory.init();
+    let mut factory = Factory::deploy(&env, NoArgs);
     println!("   ✓ Factory deployed at: {:?}", factory.address());
 
     // Step 2: Create Pool initialization args
@@ -41,7 +40,7 @@ fn test_full_dex_deployment() {
 
     // Step 3: Deploy Pool
     println!("\n3. Deploying Pool...");
-    let mut pool = PoolHostRef::deploy(&env, pool_args);
+    let mut pool = Pool::deploy(&env, pool_args);
     println!("   ✓ Pool deployed at: {:?}", pool.address());
 
     // Step 4: Initialize Pool with 1:1 price
@@ -68,8 +67,10 @@ fn test_full_dex_deployment() {
 
     // Step 7: Deploy PositionManager
     println!("\n7. Deploying PositionManager...");
-    let mut pos_manager = PositionManagerHostRef::deploy(&env, NoArgs);
-    pos_manager.init(factory.address());
+    let pos_manager_args = PositionManagerInitArgs {
+        factory: factory.address(),
+    };
+    let mut pos_manager = PositionManager::deploy(&env, pos_manager_args);
     println!("   ✓ PositionManager deployed at: {:?}", pos_manager.address());
 
     println!("\n=== Deployment Summary ===");
@@ -86,8 +87,7 @@ fn test_multiple_pools_deployment() {
     println!("\n=== Testing Multiple Pool Deployment ===\n");
 
     // Deploy Factory
-    let mut factory = FactoryHostRef::deploy(&env, NoArgs);
-    factory.init();
+    let mut factory = Factory::deploy(&env, NoArgs);
     println!("Factory deployed: {:?}", factory.address());
 
     // Create 3 different pools
@@ -108,7 +108,7 @@ fn test_multiple_pools_deployment() {
             tick_spacing: if *fee == 500 { 10 } else { 60 },
         };
 
-        let mut pool = PoolHostRef::deploy(&env, pool_args);
+        let mut pool = Pool::deploy(&env, pool_args);
         let sqrt_price = U256::from(1u128 << 96);
         pool.initialize(sqrt_price);
 
@@ -133,8 +133,7 @@ fn test_factory_security() {
     let owner = env.get_account(0);
     env.set_caller(owner);
 
-    let mut factory = FactoryHostRef::deploy(&env, NoArgs);
-    factory.init();
+    let mut factory = Factory::deploy(&env, NoArgs);
     println!("Factory deployed by owner: {:?}", owner);
 
     // Deploy a pool
@@ -167,7 +166,7 @@ fn test_factory_security() {
             fee: 3000,
             tick_spacing: 60,
         };
-        let mut pool2 = PoolHostRef::deploy(&env, pool2_args);
+        let mut pool2 = Pool::deploy(&env, pool2_args);
         pool2.initialize(U256::from(1u128 << 96));
 
         factory.register_pool(pool2.address(), env.get_account(12), env.get_account(13), 3000);

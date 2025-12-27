@@ -43,26 +43,11 @@ impl odra_cli::deploy::DeployScript for DeployDexScript {
         container.add_contract(&pos_manager)?;
         println!("   ✅ PositionManager deployed at: {:?}\n", pos_manager.address());
 
-        println!("✨ DEX Deployment complete!\n");
-        Ok(())
-    }
-}
-
-/// Deploy script for test tokens
-pub struct DeployTestTokensScript;
-
-impl odra_cli::deploy::DeployScript for DeployTestTokensScript {
-    fn deploy(
-        &self,
-        env: &HostEnv,
-        container: &mut odra_cli::DeployedContractsContainer,
-    ) -> Result<(), odra_cli::deploy::Error> {
-        println!("\n🪙  Deploying Test Tokens...\n");
-
-        // Deploy Token0 (e.g., WCSPR)
-        println!("1️⃣  Deploying Token0 (WCSPR)...");
+        // Deploy Test Tokens
+        println!("3️⃣  Deploying Test Tokens...");
         env.set_gas(300_000_000_000);
-        let initial_supply = U256::from(1_000_000) * U256::from(10u128.pow(18)); // 1M tokens
+
+        let initial_supply = U256::from(1_000_000) * U256::from(10u128.pow(18));
         let token0 = TestToken::try_deploy(
             env,
             TestTokenInitArgs {
@@ -73,12 +58,9 @@ impl odra_cli::deploy::DeployScript for DeployTestTokensScript {
             },
         )?;
         container.add_contract(&token0)?;
-        println!("   ✅ WCSPR deployed at: {:?}\n", token0.address());
+        println!("   ✅ WCSPR deployed at: {:?}", token0.address());
 
-        // Deploy Token1 (e.g., USDC)
-        println!("2️⃣  Deploying Token1 (USDC)...");
-        env.set_gas(300_000_000_000);
-        let usdc_supply = U256::from(10_000_000) * U256::from(10u128.pow(6)); // 10M USDC with 6 decimals
+        let usdc_supply = U256::from(10_000_000) * U256::from(10u128.pow(6));
         let token1 = TestToken::try_deploy(
             env,
             TestTokenInitArgs {
@@ -91,7 +73,7 @@ impl odra_cli::deploy::DeployScript for DeployTestTokensScript {
         container.add_contract(&token1)?;
         println!("   ✅ USDC deployed at: {:?}\n", token1.address());
 
-        println!("✨ Test Tokens Deployment complete!\n");
+        println!("✨ DEX Deployment complete!\n");
         Ok(())
     }
 }
@@ -101,7 +83,6 @@ pub fn main() {
     OdraCli::new()
         .about("CasperSwap V3 DEX - Command Line Interface")
         .deploy(DeployDexScript)
-        .deploy_named("tokens", DeployTestTokensScript)
         .contract::<Factory>()
         .contract::<Pool>()
         .contract::<PositionManager>()

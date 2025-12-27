@@ -9,3 +9,6 @@ fqn = "dex_contracts::factory::Factory"
 
 [[contracts]]
 fqn = "dex_contracts::position_manager::PositionManager"
+
+[[contracts]]
+fqn = "plvx::PremierLeague"
