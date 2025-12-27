@@ -17,6 +17,10 @@ import { RoundRepository } from './repository/round';
 import { PaginationParams, pagination } from './middleware/pagination';
 import { CSPRCloudAPIClient } from './cspr-cloud/api-client';
 
+// DEX imports
+import { PoolDeploymentService } from './dex/pool-deployment.service';
+import { DeployPoolRequest, GetPoolRequest } from './dex/types';
+
 const app: Express = express();
 app.use(cors<Request>());
 app.use(express.json({ limit: '1mb' }));
@@ -32,12 +36,15 @@ interface FindPlaysByRoundParams {
 }
 
 async function main() {
-  await AppDataSource.initialize();
+  // await AppDataSource.initialize();
 
-  const playsRepository = new PlayRepository(AppDataSource);
-  const roundsRepository = new RoundRepository(AppDataSource);
+  // const playsRepository = new PlayRepository(AppDataSource);
+  // const roundsRepository = new RoundRepository(AppDataSource);
 
   const csprCloudClient = new CSPRCloudAPIClient(config.csprCloudApiUrl, config.csprCloudAccessKey);
+
+  // Initialize DEX services
+  const poolDeploymentService = new PoolDeploymentService();
 
   const csprCloudAPIProxy = createProxyMiddleware({
     target: config.csprCloudApiUrl,
@@ -48,68 +55,165 @@ async function main() {
   });
   app.get('/accounts/:account_hash', csprCloudAPIProxy);
 
-  app.get('/players/:player_account_hash/plays', pagination(), async (req: Request<FindPlaysByPlayerParams, never, never, PaginationParams>, res: Response) => {
-    const [plays, total] = await playsRepository.getPaginatedPlays({
-      playerAccountHash: req.params.player_account_hash,
-    },{
-      limit: req.query.limit,
-      offset: req.query.offset,
-    });
+  // app.get('/players/:player_account_hash/plays', pagination(), async (req: Request<FindPlaysByPlayerParams, never, never, PaginationParams>, res: Response) => {
+  //   const [plays, total] = await playsRepository.getPaginatedPlays({
+  //     playerAccountHash: req.params.player_account_hash,
+  //   },{
+  //     limit: req.query.limit,
+  //     offset: req.query.offset,
+  //   });
 
-    await csprCloudClient.withPublicKeys(plays);
+  //   await csprCloudClient.withPublicKeys(plays);
 
-    res.json({ data: plays, total });
-  });
+  //   res.json({ data: plays, total });
+  // });
 
-  app.get('/rounds/latest/plays', pagination(), async (req: Request<never, never, never, PaginationParams>, res: Response) => {
-    const [plays, total] = await playsRepository.getLatestRoundPlays({
-      limit: req.query.limit,
-      offset: req.query.offset,
-    });
+  // app.get('/rounds/latest/plays', pagination(), async (req: Request<never, never, never, PaginationParams>, res: Response) => {
+  //   const [plays, total] = await playsRepository.getLatestRoundPlays({
+  //     limit: req.query.limit,
+  //     offset: req.query.offset,
+  //   });
 
-    await csprCloudClient.withPublicKeys(plays);
+  //   await csprCloudClient.withPublicKeys(plays);
 
-    res.json({ data: plays, total });
-  });
+  //   res.json({ data: plays, total });
+  // });
 
-  app.get('/rounds/:round_id/plays', pagination(), async (req: Request<FindPlaysByRoundParams, never, never, PaginationParams>, res: Response) => {
-    const [plays, total] = await playsRepository.getPaginatedPlays({
-      roundId: req.params.round_id,
-    },{
-      limit: req.query.limit,
-      offset: req.query.offset,
-    });
+  // app.get('/rounds/:round_id/plays', pagination(), async (req: Request<FindPlaysByRoundParams, never, never, PaginationParams>, res: Response) => {
+  //   const [plays, total] = await playsRepository.getPaginatedPlays({
+  //     roundId: req.params.round_id,
+  //   },{
+  //     limit: req.query.limit,
+  //     offset: req.query.offset,
+  //   });
 
-    await csprCloudClient.withPublicKeys(plays);
+  //   await csprCloudClient.withPublicKeys(plays);
 
-    res.json({ data: plays, total });
-  });
+  //   res.json({ data: plays, total });
+  // });
 
-  app.get('/rounds/latest', async (req: Request<never, never, never, { is_finished: string }>, res: Response) => {
-    const isFinished = req.query.is_finished === 'true';
+  // app.get('/rounds/latest', async (req: Request<never, never, never, { is_finished: string }>, res: Response) => {
+  //   const isFinished = req.query.is_finished === 'true';
 
-    const round = await roundsRepository.getLatest({ isFinished });
+  //   const round = await roundsRepository.getLatest({ isFinished });
 
-    await csprCloudClient.withPublicKeys([round]);
+  //   await csprCloudClient.withPublicKeys([round]);
 
-    res.json({ data: round });
-  });
+  //   res.json({ data: round });
+  // });
 
-  app.get('/rounds', pagination(), async (req: Request<never, never, never, PaginationParams & { is_finished: string }>, res: Response) => {
-    const isFinished = req.query.is_finished === 'true';
+  // app.get('/rounds', pagination(), async (req: Request<never, never, never, PaginationParams & { is_finished: string }>, res: Response) => {
+  //   const isFinished = req.query.is_finished === 'true';
   
-    const [rounds, total] = await roundsRepository.getPaginatedRounds({
-      limit: req.query.limit,
-      offset: req.query.offset,
-    }, { isFinished });
+  //   const [rounds, total] = await roundsRepository.getPaginatedRounds({
+  //     limit: req.query.limit,
+  //     offset: req.query.offset,
+  //   }, { isFinished });
 
-    await csprCloudClient.withPublicKeys(rounds);
+  //   await csprCloudClient.withPublicKeys(rounds);
 
-    res.json({ data: rounds, total });
-  });
+  //   res.json({ data: rounds, total });
+  // });
 
   app.get('/proxy-wasm', async (_: Request, res: Response) => {
     fs.createReadStream(path.resolve(__dirname, `./resources/proxy_caller.wasm`)).pipe(res);
+  });
+
+  // ============================================================================
+  // DEX API ENDPOINTS
+  // ============================================================================
+
+  /**
+   * POST /api/dex/deploy-pool
+   * Deploy a new liquidity pool
+   *
+   * Body: { token0: string, token1: string, fee: number, initialPrice?: string }
+   * Response: { success, poolAddress?, poolCreationArgs?, deployHash?, error?, steps }
+   */
+  app.post('/api/dex/deploy-pool', async (req: Request<never, never, DeployPoolRequest>, res: Response) => {
+    try {
+      const { token0, token1, fee } = req.body;
+
+      if (!token0 || !token1 || !fee) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: token0, token1, fee',
+        });
+      }
+
+      const result = await poolDeploymentService.deployPool(req.body);
+
+      const statusCode = result.success ? 200 : 400;
+      return res.status(statusCode).json(result);
+    } catch (error: any) {
+      return res.status(500).json({
+        success: false,
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * POST /api/dex/pool-args
+   * Get pool creation arguments without deploying
+   *
+   * Body: { token0: string, token1: string, fee: number }
+   * Response: { poolCreationArgs, manualDeploymentInstructions }
+   */
+  app.post('/api/dex/pool-args', async (req: Request<never, never, DeployPoolRequest>, res: Response) => {
+    try {
+      const { token0, token1, fee } = req.body;
+
+      if (!token0 || !token1 || !fee) {
+        return res.status(400).json({
+          error: 'Missing required fields: token0, token1, fee',
+        });
+      }
+
+      // Deploy but only get the args (service will return args if deployer key not configured)
+      const result = await poolDeploymentService.deployPool(req.body);
+
+      if (result.poolCreationArgs) {
+        const instructions = poolDeploymentService.getManualDeploymentInstructions(result.poolCreationArgs);
+
+        return res.json({
+          poolCreationArgs: result.poolCreationArgs,
+          manualDeploymentInstructions: instructions,
+        });
+      } else {
+        return res.status(400).json({
+          error: result.error || 'Failed to generate pool creation arguments',
+        });
+      }
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
+  });
+
+  /**
+   * GET /api/dex/pool-wasm
+   * Download Pool.wasm binary
+   */
+  app.get('/api/dex/pool-wasm', async (_: Request, res: Response) => {
+    try {
+      const wasmPath = path.resolve(__dirname, '../wasm/Pool.wasm');
+
+      if (!fs.existsSync(wasmPath)) {
+        return res.status(404).json({
+          error: 'Pool.wasm not found. Ensure it is built and copied to server/wasm/',
+        });
+      }
+
+      res.setHeader('Content-Type', 'application/wasm');
+      res.setHeader('Content-Disposition', 'attachment; filename=Pool.wasm');
+      fs.createReadStream(wasmPath).pipe(res);
+    } catch (error: any) {
+      return res.status(500).json({
+        error: error.message,
+      });
+    }
   });
 
   app.get('/health', async (_: Request, res: Response) => {

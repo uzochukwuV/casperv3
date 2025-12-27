@@ -1,24 +1,36 @@
 [workspace]
-members = [
-    "lottery-cli",
-    "lottery-contracts",
-]
-
+members = ["lottery-cli", "lottery-contracts", "dex-contracts"]
+exclude = ["smart_contract_client"]
 resolver = "2"
 
-[workspace.dependencies]
-odra = { version = "2.4.0" }
-odra-cli = { version = "2.4.0" }
-odra-modules = { version = "2.4.0" }
-odra-test = { version = "2.4.0" }
-odra-build = { version = "2.4.0" }
+[workspace.dependencies.odra]
+version = "2.4.0"
+features = []
+
+[workspace.dependencies.odra-build]
+version = "2.4.0"
+features = []
+
+[workspace.dependencies.odra-cli]
+version = "2.4.0"
+features = []
+
+[workspace.dependencies.odra-modules]
+version = "2.4.0"
+features = []
+
+[workspace.dependencies.odra-test]
+version = "2.4.0"
+features = []
 
 [profile.release]
-codegen-units = 1
-lto = true
-panic = "abort"
 opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
 strip = true
+
+[profile.release.package]
 
 [profile.dev.package."*"]
 opt-level = 3

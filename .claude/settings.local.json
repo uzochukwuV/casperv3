@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(cargo check:*)",
+      "Read(//c/Users/ASUS/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

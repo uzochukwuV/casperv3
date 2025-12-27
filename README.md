@@ -82,3 +82,6 @@ Follow the [Web Client instructions](client/README.md) to configure, build, and 
 ## Community
 
 Join [Casper Developers](https://t.me/CSPRDevelopers) Telegram channel to connect with other developers.
+
+https://github.com/make-software/casper-wallet-playground.git
+

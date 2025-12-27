@@ -1,7 +1,4 @@
 [[contracts]]
-fqn = "lottery_contracts::Lottery"
-
-[[contracts]]
 fqn = "dex_contracts::pool::Pool"
 
 [[contracts]]
