@@ -5,6 +5,7 @@ import {
 	ABOUT_PATH,
 	HOME_PATH,
 	JACKPOTS_PATH,
+	MINT_PATH,
 } from '../../router/paths';
 
 const MainMenuContainer = styled.div(({ theme }) =>
@@ -33,6 +34,9 @@ export const NavigationMenu = () => {
 				</MainMenuItem>
 				<MainMenuItem>
 					<Link to={JACKPOTS_PATH}>Jackpots</Link>
+				</MainMenuItem>
+				<MainMenuItem>
+					<Link to={MINT_PATH}>Mint Tokens</Link>
 				</MainMenuItem>
 			</MainMenu>
 		</MainMenuContainer>

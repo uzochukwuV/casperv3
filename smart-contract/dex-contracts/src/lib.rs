@@ -3,9 +3,9 @@
 extern crate alloc;
 
 // Core contracts
-pub mod pool;
-pub mod factory;
-pub mod position_manager;
+pub mod unified_dex;           // Main DEX contract (replaces factory + pools)
+pub mod unified_position_manager; // Position manager for unified DEX
+pub mod router;                // Multi-hop swap router
 
 // Test token (for testing/demo purposes)
 pub mod test_token;

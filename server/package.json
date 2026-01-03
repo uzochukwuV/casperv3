@@ -7,8 +7,12 @@
     "lint": "eslint src/**/*.ts",
     "format": "eslint 'src/**/*.ts' --fix && prettier src/**/*.ts --write",
     "api:dev": "ts-node src/api.ts",
-    "event-handler:dev": "ts-node src/event-handler.ts",
-    "typeorm": "./node_modules/ts-node/dist/bin.js ./node_modules/typeorm/cli.js -d dist/data-source.js"
+    "event-handler:dev": "ts-node src/dex-event-handler.ts",
+    "event:test": "ts-node src/multi-contract-event-listener.ts",
+    "typeorm": "npx typeorm -d src/data-source.ts",
+    "migration:generate": "npm run build && npx typeorm migration:generate src/migration/dex-entities -d dist/data-source.js",
+    "migration:run": "npm run build && npx typeorm migration:run -d dist/data-source.js",
+    "migration:revert": "npm run build && npx typeorm migration:revert -d dist/data-source.js"
   },
   "overrides": {
     "sha.js": "^2.4.12"

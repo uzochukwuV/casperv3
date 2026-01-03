@@ -6,6 +6,7 @@ import {
 	JACKPOTS_PATH,
 	MY_PLAYS_PATH,
 	JACKPOT_PLAYS_PATH,
+	MINT_PATH,
 } from './paths';
 import { FlexColumn } from '@make-software/cspr-design';
 import { PageHeader } from '../components';
@@ -14,6 +15,7 @@ import AboutScene from '../scenes/about';
 import JackpotsScene from '../scenes/jackpots';
 import JackpotRoundScene from '../scenes/round';
 import MyPlaysScene from '../scenes/my-plays';
+import MintScene from '../scenes/mint';
 
 export const Container = styled(FlexColumn)(({ theme }) => ({
 	minWidth: theme.minWidth,
@@ -36,6 +38,7 @@ const Router = () => {
 						element={<JackpotRoundScene />}
 					/>
 					<Route path={MY_PLAYS_PATH} element={<MyPlaysScene />} />
+					<Route path={MINT_PATH} element={<MintScene />} />
 				</Routes>
 			</Container>
 		</BrowserRouter>

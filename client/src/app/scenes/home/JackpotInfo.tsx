@@ -125,7 +125,7 @@ const JackpotInfo = ({ setModalOpen }: JackpotInfoProps) => {
 					<InfoBadge
 						background={theme.styleguideColors.backgroundTertiary}
 						color={theme.styleguideColors.contentLightBlue}
-						title={`1 shot = ${config.lottery_ticket_price_in_cspr} CSPR + fee`}
+						title={`1 shot = ${100} CSPR + fee`}
 					/>
 					<StyledButton
 						height={'36'}

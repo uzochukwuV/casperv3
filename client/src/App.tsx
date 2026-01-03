@@ -12,6 +12,8 @@ export const ActiveAccountContext =
 const App = () => {
 	const { activeAccount } = useCsprClick();
 
+	console.log('Active Account:', activeAccount);
+
 	return (
 		<ThemeProvider theme={AppTheme[ThemeModeType.light]}>
 			<ActiveAccountContext.Provider value={activeAccount}>

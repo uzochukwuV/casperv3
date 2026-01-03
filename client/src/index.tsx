@@ -6,7 +6,7 @@ import { CONTENT_MODE, CsprClickInitOptions } from '@make-software/csprclick-cor
 import App from './App';
 
 const clickOptions: CsprClickInitOptions = {
-	appName: config.cspr_click_app_name,
+	appName: "app",
 	contentMode: CONTENT_MODE.IFRAME,
 	providers: [
 		'casper-wallet',
@@ -16,7 +16,7 @@ const clickOptions: CsprClickInitOptions = {
 		'metamask-snap',
 		'casper-signer',
 	],
-	appId: config.cspr_click_app_id,
+	appId: "2afade1f-e0e4-4d1e-af2a-b7241a98",
 };
 
 const root = ReactDOM.createRoot(

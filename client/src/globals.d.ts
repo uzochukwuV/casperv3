@@ -8,6 +8,14 @@ type GlobalConfig = {
 	cspr_chain_name: string;
 	lottery_ticket_price_in_cspr: number;
 	gas_price_in_cspr: number;
+	// DEX Configuration
+	dex_contract_package_hash: string;
+	router_contract_package_hash: string;
+	position_manager_contract_package_hash: string;
+	// Test tokens (will be replaced with real tokens)
+	wcspr_token_contract_hash: string;
+	usdt_token_contract_hash: string;
+	cdai_token_contract_hash: string;
 };
 
 declare const config: GlobalConfig;

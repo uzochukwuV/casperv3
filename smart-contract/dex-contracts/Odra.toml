@@ -1,8 +1,11 @@
 [[contracts]]
-fqn = "dex_contracts::pool::Pool"
+fqn = "dex_contracts::unified_dex::UnifiedDex"
 
 [[contracts]]
-fqn = "dex_contracts::factory::Factory"
+fqn = "dex_contracts::unified_position_manager::UnifiedPositionManager"
 
 [[contracts]]
-fqn = "dex_contracts::position_manager::PositionManager"
+fqn = "dex_contracts::test_token::TestToken"
+
+[[contracts]]
+fqn = "dex_contracts::router::Router"
