@@ -11,7 +11,7 @@ import { InfoBadge } from '../../components/info-badge/info-badge';
 
 const HeroContainer = styled(FlexRow)(({ theme }) =>
 	theme.withMedia({
-		background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+		background: 'linear-gradient(135deg, #FF0011 0%, #C5000D 100%)',
 		width: '100%',
 		justifyContent: 'center',
 		padding: '20px 0 28px',

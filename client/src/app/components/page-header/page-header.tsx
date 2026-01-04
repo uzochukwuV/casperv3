@@ -4,7 +4,7 @@ import ClickTopBar from '../click-top-bar';
 import { NavigationMenu } from '../../components';
 import HamburgerIcon from '../../../assets/icons/hamburger-menu.svg';
 import { useMatchMedia } from '../../utils/match-media';
-import LotteryLogo from './lottery-logo';
+import DexLogo from './lottery-logo';
 import {
 	FlexColumn,
 	FlexRow,
@@ -41,10 +41,10 @@ const HamburgerButton = styled(SvgIcon)(({ theme }) => ({
 export const PageHeader = () => {
 	const [menuVisible, setMenuVisible] = useState(false);
 
-	const onMobile = (
+		const onMobile = (
 		<FlexColumn justify={'center'}>
 			<NavBarContainer>
-				<LotteryLogo />
+				<DexLogo />
 				<HamburgerButton
 					src={HamburgerIcon}
 					size={16}
@@ -60,7 +60,7 @@ export const PageHeader = () => {
 	const onAbove = (
 		<FlexRow justify={'center'}>
 			<NavBarContainer>
-				<LotteryLogo />
+				<DexLogo />
 				<FlexRow align={'end'}>
 					<NavigationMenu />
 				</FlexRow>

@@ -56,12 +56,12 @@ interface CardProps {
 const TokenCard = styled(FlexColumn)<CardProps>`
 	${({ theme, isSelected, delay }) => css`
 		background: ${isSelected
-			? 'linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%)'
+			? 'linear-gradient(135deg, rgba(255, 0, 17, 0.1) 0%, rgba(197, 0, 13, 0.1) 100%)'
 			: theme.styleguideColors.backgroundSecondary};
 		border-radius: 20px;
 		padding: 32px 24px;
 		border: ${isSelected
-			? '2px solid #667eea'
+			? '2px solid #FF0011'
 			: `1px solid ${theme.styleguideColors.borderPrimary}`};
 		cursor: pointer;
 		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -72,9 +72,9 @@ const TokenCard = styled(FlexColumn)<CardProps>`
 		&:hover {
 			transform: translateY(-8px);
 			box-shadow: ${isSelected
-				? '0 20px 40px rgba(102, 126, 234, 0.3)'
+				? '0 20px 40px rgba(255, 0, 17, 0.3)'
 				: `0 20px 40px ${theme.styleguideColors.backgroundSecondary}`};
-			border-color: ${isSelected ? '#667eea' : theme.styleguideColors.borderSecondary};
+			border-color: ${isSelected ? '#FF0011' : theme.styleguideColors.borderSecondary};
 		}
 
 		&::before {
@@ -85,7 +85,7 @@ const TokenCard = styled(FlexColumn)<CardProps>`
 			right: 0;
 			height: 4px;
 			background: ${isSelected
-				? 'linear-gradient(90deg, #667eea 0%, #764ba2 100%)'
+				? 'linear-gradient(90deg, #FF0011 0%, #C5000D 100%)'
 				: 'transparent'};
 			transition: all 0.3s ease;
 		}
@@ -96,11 +96,11 @@ const TokenIcon = styled(FlexColumn)(({ theme }) => ({
 	width: '64px',
 	height: '64px',
 	borderRadius: '50%',
-	background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+	background: 'linear-gradient(135deg, #FF0011 0%, #C5000D 100%)',
 	alignItems: 'center',
 	justifyContent: 'center',
 	marginBottom: '16px',
-	boxShadow: '0 8px 16px rgba(102, 126, 234, 0.3)',
+	boxShadow: '0 8px 16px rgba(255, 0, 17, 0.3)',
 }));
 
 const TokenSymbol = styled(Text)({
@@ -178,8 +178,8 @@ const Input = styled.input(({ theme }) => ({
 	transition: 'all 0.3s ease',
 	outline: 'none',
 	'&:focus': {
-		borderColor: '#667eea',
-		boxShadow: '0 0 0 3px rgba(102, 126, 234, 0.1)',
+		borderColor: '#FF0011',
+		boxShadow: '0 0 0 3px rgba(255, 0, 17, 0.1)',
 	},
 	'&::placeholder': {
 		color: theme.styleguideColors.contentSecondary,
@@ -188,9 +188,9 @@ const Input = styled.input(({ theme }) => ({
 
 const InfoBox = styled(FlexColumn)(({ theme }) => ({
 	padding: '16px',
-	background: 'rgba(102, 126, 234, 0.05)',
+	background: 'rgba(255, 0, 17, 0.05)',
 	borderRadius: '12px',
-	border: '1px solid rgba(102, 126, 234, 0.2)',
+	border: '1px solid rgba(255, 0, 17, 0.2)',
 	marginBottom: '24px',
 }));
 

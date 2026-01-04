@@ -1,20 +1,20 @@
 import { AccountMenuItem as CsprClickAccountMenuItem } from '@make-software/csprclick-ui';
 import CupIcon from '../../../../assets/icons/cup.svg';
 import { useNavigate } from 'react-router-dom';
-import { MY_PLAYS_PATH } from '../../../router/paths';
+import { PORTFOLIO_PATH } from '../../../router/paths';
 
 const AccountMenuItem = () => {
 	const navigate = useNavigate();
 
-	const navigateToMyPlays = () => {
-		navigate(MY_PLAYS_PATH);
+	const navigateToPortfolio = () => {
+		navigate(PORTFOLIO_PATH);
 	};
 	return (
 		<CsprClickAccountMenuItem
 			key={2}
-			onClick={navigateToMyPlays}
+			onClick={navigateToPortfolio}
 			icon={CupIcon}
-			label={'My plays'}
+			label={'Portfolio'}
 		/>
 	);
 };

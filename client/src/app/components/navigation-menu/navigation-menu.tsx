@@ -2,9 +2,12 @@ import styled from 'styled-components';
 import { Link } from '../link/link';
 import { MainMenu, MainMenuItem } from '@make-software/cspr-design';
 import {
-	ABOUT_PATH,
 	HOME_PATH,
-	JACKPOTS_PATH,
+	SWAP_PATH,
+	POOLS_PATH,
+	POSITIONS_PATH,
+	ANALYTICS_PATH,
+	PORTFOLIO_PATH,
 	MINT_PATH,
 } from '../../router/paths';
 
@@ -12,6 +15,7 @@ const MainMenuContainer = styled.div(({ theme }) =>
 	theme.withMedia({
 		position: 'relative',
 		padding: 0,
+	
 		paddingBottom: [19, 19, 0],
 		width: ['100%', '100%', 'auto'],
 		'& li': {
@@ -27,16 +31,25 @@ export const NavigationMenu = () => {
 		<MainMenuContainer>
 			<MainMenu>
 				<MainMenuItem>
-					<Link to={HOME_PATH}>Home</Link>
+					<Link  to={HOME_PATH}>Home</Link>
 				</MainMenuItem>
 				<MainMenuItem>
-					<Link to={ABOUT_PATH}>About</Link>
+					<Link to={SWAP_PATH}>Swap</Link>
 				</MainMenuItem>
 				<MainMenuItem>
-					<Link to={JACKPOTS_PATH}>Jackpots</Link>
+					<Link to={POOLS_PATH}>Pools</Link>
+				</MainMenuItem>
+				<MainMenuItem>
+					<Link to={POSITIONS_PATH}>Positions</Link>
 				</MainMenuItem>
 				<MainMenuItem>
 					<Link to={MINT_PATH}>Mint Tokens</Link>
+				</MainMenuItem>
+				<MainMenuItem>
+					<Link to={ANALYTICS_PATH}>Analytics</Link>
+				</MainMenuItem>
+				<MainMenuItem>
+					<Link to={PORTFOLIO_PATH}>Portfolio</Link>
 				</MainMenuItem>
 			</MainMenu>
 		</MainMenuContainer>

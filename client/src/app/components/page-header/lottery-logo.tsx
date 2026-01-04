@@ -1,19 +1,27 @@
-import Logo from '../../../assets/logos/lottery-logo.svg';
 import { HOME_PATH } from '../../router/paths';
 import RouterLink from '../link/router-link';
-import { NavLink, SvgIcon } from '@make-software/cspr-design';
+import { NavLink } from '@make-software/cspr-design';
+import styled from 'styled-components';
 
-const LotteryLogo = () => {
-	return (
-		<RouterLink
-			to={HOME_PATH}
-			render={props => (
-				<NavLink>
-					<SvgIcon src={Logo} width={162} height={72} {...props} />
-				</NavLink>
-			)}
-		/>
-	);
+const DexLogo = styled.div(({ theme }) => ({
+  fontSize: '28px',
+  fontWeight: '800',
+  color: theme.dexColors.chocolate,
+  letterSpacing: '-0.02em',
+  textDecoration: 'none',
+}));
+
+const LogoComponent = () => {
+  return (
+    <RouterLink
+      to={HOME_PATH}
+      render={props => (
+        <NavLink>
+          <DexLogo {...props}>Uzzy3 DEX</DexLogo>
+        </NavLink>
+      )}
+    />
+  );
 };
 
-export default LotteryLogo;
+export default LogoComponent;

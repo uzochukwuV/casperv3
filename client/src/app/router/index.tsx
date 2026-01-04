@@ -2,19 +2,23 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import styled from 'styled-components';
 import {
 	HOME_PATH,
-	ABOUT_PATH,
-	JACKPOTS_PATH,
-	MY_PLAYS_PATH,
-	JACKPOT_PLAYS_PATH,
+	SWAP_PATH,
+	POOLS_PATH,
+	POOL_DETAIL_PATH,
+	POSITIONS_PATH,
+	ANALYTICS_PATH,
+	PORTFOLIO_PATH,
 	MINT_PATH,
 } from './paths';
 import { FlexColumn } from '@make-software/cspr-design';
 import { PageHeader } from '../components';
 import HomeScene from '../scenes/home';
-import AboutScene from '../scenes/about';
-import JackpotsScene from '../scenes/jackpots';
-import JackpotRoundScene from '../scenes/round';
-import MyPlaysScene from '../scenes/my-plays';
+import SwapScene from '../scenes/swap';
+import PoolsScene from '../scenes/pools';
+import PoolDetailScene from '../scenes/pool-detail';
+import PositionsScene from '../scenes/positions';
+import AnalyticsScene from '../scenes/analytics';
+import PortfolioScene from '../scenes/portfolio';
 import MintScene from '../scenes/mint';
 
 export const Container = styled(FlexColumn)(({ theme }) => ({
@@ -22,6 +26,7 @@ export const Container = styled(FlexColumn)(({ theme }) => ({
 	alignItems: 'center',
 	backgroundColor: theme.styleguideColors.backgroundSecondary,
 	color: theme.styleguideColors.contentPrimary,
+	minHeight: '100vh',
 }));
 
 const Router = () => {
@@ -31,14 +36,13 @@ const Router = () => {
 				<PageHeader />
 				<Routes>
 					<Route path={HOME_PATH} element={<HomeScene />} />
-					<Route path={ABOUT_PATH} element={<AboutScene />} />
-					<Route path={JACKPOTS_PATH} element={<JackpotsScene />} />
-					<Route
-						path={JACKPOT_PLAYS_PATH}
-						element={<JackpotRoundScene />}
-					/>
-					<Route path={MY_PLAYS_PATH} element={<MyPlaysScene />} />
+					<Route path={SWAP_PATH} element={<SwapScene />} />
+					<Route path={POOLS_PATH} element={<PoolsScene />} />
+					<Route path={POOL_DETAIL_PATH} element={<PoolDetailScene />} />
+					<Route path={POSITIONS_PATH} element={<PositionsScene />} />
 					<Route path={MINT_PATH} element={<MintScene />} />
+					<Route path={ANALYTICS_PATH} element={<AnalyticsScene />} />
+					<Route path={PORTFOLIO_PATH} element={<PortfolioScene />} />
 				</Routes>
 			</Container>
 		</BrowserRouter>

@@ -1,305 +1,568 @@
 import { Request, Response, Express } from 'express';
+import { AppDataSource } from './data-source';
+import { PoolRepository } from './repository/pool.repository';
+import { LiquidityEventRepository } from './repository/liquidity-event.repository';
+import { CollectEventRepository } from './repository/collect-event.repository';
+import { TokenTransferRepository } from './repository/token-transfer.repository';
+import { TokenApprovalRepository } from './repository/token-approval.repository';
+import { PositionRepository } from './repository/position.repository';
 import { config } from './config';
-import axios from 'axios';
 
-// Export function to register DEX endpoints
+let poolRepo: PoolRepository;
+let liquidityRepo: LiquidityEventRepository;
+let collectRepo: CollectEventRepository;
+let tokenTransferRepo: TokenTransferRepository;
+let tokenApprovalRepo: TokenApprovalRepository;
+let positionRepo: PositionRepository;
+
+// Initialize repositories
+async function initializeRepositories() {
+  if (!AppDataSource.isInitialized) {
+    await AppDataSource.initialize();
+  }
+  
+  poolRepo = new PoolRepository(AppDataSource);
+  liquidityRepo = new LiquidityEventRepository(AppDataSource);
+  collectRepo = new CollectEventRepository(AppDataSource);
+  tokenTransferRepo = new TokenTransferRepository(AppDataSource);
+  tokenApprovalRepo = new TokenApprovalRepository(AppDataSource);
+  positionRepo = new PositionRepository(AppDataSource);
+}
+
 export function registerDexEndpoints(app: Express) {
   console.log('Registering DEX endpoints...');
   
-  // Alternative pool endpoint with query params for testing
-  app.get('/api/dex/pool-query', async (req: Request, res: Response) => {
-    try {
-      const { token0, token1, fee } = req.query;
-      
-      const poolData = {
-        token0: `contract-package-${token0}`,
-        token1: `contract-package-${token1}`,
-        fee: parseInt(fee as string),
-        sqrt_price_x96: '79228162514264337593543950336',
-        liquidity: '1000000000000',
-        tick: 0,
-        unlocked: true
-      };
-
-      res.json({ success: true, data: poolData });
-    } catch (error: any) {
-      res.json({ success: false, error: error.message });
+  // Initialize repositories on first request
+  app.use(async (req, res, next) => {
+    if (!poolRepo) {
+      await initializeRepositories();
     }
-  });
-  /**
-   * GET /api/dex/test-cspr-cloud
-   * Test CSPR.cloud API connectivity
-   */
-  app.get('/api/dex/test-cspr-cloud', async (req: Request, res: Response) => {
-    try {
-      const response = await axios.get(
-        `${config.csprCloudApiUrl}/accounts/0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca`,
-        {
-          headers: {
-            authorization: config.csprCloudAccessKey,
-          },
-        }
-      );
-
-      res.json({
-        success: true,
-        cspr_cloud_url: config.csprCloudApiUrl,
-        response: response.data,
-      });
-    } catch (error: any) {
-      console.error('CSPR.cloud test error:', error.response?.data || error.message);
-      res.json({
-        success: false,
-        cspr_cloud_url: config.csprCloudApiUrl,
-        error: error.response?.data || error.message,
-      });
-    }
+    next();
   });
 
-  /**
-   * GET /api/dex/pool/:token0/:token1/:fee
-   * Get specific pool data from UnifiedDex contract
-   */
-  app.get('/api/dex/pool/:token0/:token1/:fee', async (req: Request, res: Response) => {
-    try {
-      const { token0, token1, fee } = req.params;
-      
-      // Use fallback pool data
-      const poolData = {
-        token0: `contract-package-${token0}`,
-        token1: `contract-package-${token1}`,
-        fee: parseInt(fee),
-        sqrt_price_x96: '79228162514264337593543950336',
-        liquidity: '1000000000000',
-        tick: 0,
-        fee_growth_global_0_x128: '0',
-        fee_growth_global_1_x128: '0',
-        protocol_fees_token0: '0',
-        protocol_fees_token1: '0',
-        unlocked: true
-      };
-
-      res.json({ success: true, data: poolData });
-    } catch (error: any) {
-      console.error('Pool query error:', error.response?.data || error.message);
-      res.json({ success: false, error: error.response?.data || error.message });
-    }
-  });
-
-  /**
-   * POST /api/dex/quote
-   * Get swap quote from UnifiedDex.quote_exact_input_single()
-   */
-  app.post('/api/dex/quote', async (req: Request, res: Response) => {
-    try {
-      const { token_in, token_out, fee, amount_in } = req.body;
-      
-      if (!token_in || !token_out || !fee || !amount_in) {
-        return res.status(400).json({
-          error: 'Missing required fields: token_in, token_out, fee, amount_in',
-        });
-      }
-
-      // Use fallback calculation
-      const amountInBig = BigInt(amount_in);
-      const feeAmount = (amountInBig * BigInt(fee)) / BigInt(1000000);
-      const amountAfterFee = amountInBig - feeAmount;
-      const amountOut = (amountAfterFee * BigInt(99)) / BigInt(100);
-
-      const quote = {
-        amount_out: amountOut.toString(),
-        sqrt_price_x96_after: '79228162514264337593543950336',
-        tick_after: 0,
-        fee_amount: feeAmount.toString(),
-      };
-
-      res.json({ success: true, data: quote });
-    } catch (error: any) {
-      console.error('Quote error:', error.response?.data || error.message);
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  /**
-   * GET /api/dex/price/:token0/:token1/:fee
-   * Get current price from UnifiedDex.get_price()
-   */
-  app.get('/api/dex/price/:token0/:token1/:fee', async (req: Request, res: Response) => {
-    try {
-      const { token0, token1, fee } = req.params;
-      
-      // Use fallback price calculation
-      const mockPrice = {
-        price: '1000.0',
-        sqrt_price_x96: '79228162514264337593543950336',
-        tick: 0,
-        liquidity: '1000000000000'
-      };
-
-      res.json({ success: true, data: mockPrice });
-    } catch (error: any) {
-      console.error('Price query error:', error.response?.data || error.message);
-      res.json({ success: false, error: error.response?.data || error.message });
-    }
-  });
-
-  /**
-   * GET /api/dex/twap/:token0/:token1/:fee/:seconds_start/:seconds_end
-   * Get TWAP from UnifiedDex.get_twap()
-   */
-  app.get('/api/dex/twap/:token0/:token1/:fee/:seconds_start/:seconds_end', async (req: Request, res: Response) => {
-    try {
-      const { token0, token1, fee, seconds_start, seconds_end } = req.params;
-      
-      // Use fallback TWAP calculation
-      const mockTwap = {
-        twap_price: '1000.0',
-        arithmetic_mean_tick: 0,
-        harmonic_mean_liquidity: '1000000000000'
-      };
-
-      res.json({ success: true, data: mockTwap });
-    } catch (error: any) {
-      console.error('TWAP query error:', error.response?.data || error.message);
-      res.json({ success: false, error: error.response?.data || error.message });
-    }
-  });
-
-  /**
-   * POST /api/dex/router/quote-multi-hop
-   * Get multi-hop quote from Router.quote_exact_input_multi_hop()
-   */
-  app.post('/api/dex/router/quote-multi-hop', async (req: Request, res: Response) => {
-    try {
-      const { path, fees, amount_in } = req.body;
-      
-      if (!path || !fees || !amount_in) {
-        return res.status(400).json({
-          error: 'Missing required fields: path, fees, amount_in',
-        });
-      }
-
-      // Use fallback multi-hop calculation
-      const amountInBig = BigInt(amount_in);
-      let currentAmount = amountInBig;
-      
-      // Simulate each hop with 0.3% fee and 1% slippage
-      for (let i = 0; i < fees.length; i++) {
-        const feeAmount = (currentAmount * BigInt(fees[i])) / BigInt(1000000);
-        const amountAfterFee = currentAmount - feeAmount;
-        currentAmount = (amountAfterFee * BigInt(99)) / BigInt(100);
-      }
-
-      res.json({ success: true, data: currentAmount.toString() });
-    } catch (error: any) {
-      console.error('Multi-hop quote error:', error.response?.data || error.message);
-      res.json({ success: false, error: error.response?.data || error.message });
-    }
-  });
-
-  /**
-   * GET /api/dex/position-manager/:token_id
-   * Get position NFT from PositionManager.get_position()
-   */
-  app.get('/api/dex/position-manager/:token_id', async (req: Request, res: Response) => {
-    try {
-      const { token_id } = req.params;
-      
-      // Use fallback position data
-      const mockPosition = {
-        token_id: token_id,
-        owner: '0106ca7c39cd272dbf21a86eeb3b36b7c26e2e9b94af64292419f7862936bca2ca',
-        token0: config.tokens.TCSPR,
-        token1: config.tokens.USDT,
-        fee: 3000,
-        tick_lower: -887220,
-        tick_upper: 887220,
-        liquidity: '1000000000',
-        fees_owed_0: '0',
-        fees_owed_1: '0'
-      };
-
-      res.json({ success: true, data: mockPosition });
-    } catch (error: any) {
-      console.error('Position NFT query error:', error.response?.data || error.message);
-      res.json({ success: false, error: error.response?.data || error.message });
-    }
-  });
-  // Remove duplicate position manager endpoint
+  // ===== POOL ENDPOINTS =====
   
   /**
-   * GET /api/dex/pools
-   * Get pools information with real deployed pools
+   * GET /api/pools
+   * Get all pools with pagination and filtering
    */
-  app.get('/api/dex/pools', async (req: Request, res: Response) => {
+  app.get('/api/pools', async (req: Request, res: Response) => {
     try {
-      const pools = [
-        {
-          id: 'tcspr-usdt-3000',
-          token0: 'TCSPR',
-          token1: 'USDT', 
-          token0_address: config.tokens.TCSPR,
-          token1_address: config.tokens.USDT,
-          fee: 3000,
-          liquidity: '1000000000000',
-          price: '1000.0',
-          initialized: true,
-          created_at: new Date().toISOString()
-        },
-        {
-          id: 'usdt-cdai-3000',
-          token0: 'USDT',
-          token1: 'CDAI',
-          token0_address: config.tokens.USDT,
-          token1_address: config.tokens.CDAI,
-          fee: 3000,
-          liquidity: '500000000000',
-          price: '1.0',
-          initialized: true,
-          created_at: new Date().toISOString()
-        }
-      ];
-
-      res.json({ data: pools, total: pools.length });
+      const { token, limit = '50', offset = '0' } = req.query;
+      
+      let pools;
+      if (token) {
+        pools = await poolRepo.findByToken(token as string);
+      } else {
+        pools = await poolRepo.findAll();
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedPools = pools.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedPools,
+        total: pools.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, error: error.message });
     }
   });
 
   /**
-   * GET /api/dex/deployment-info
-   * Get all deployed contract information
+   * GET /api/pools/:token0/:token1/:fee
+   * Get specific pool by token pair and fee
    */
-  app.get('/api/dex/deployment-info', async (req: Request, res: Response) => {
+  app.get('/api/pools/:token0/:token1/:fee', async (req: Request, res: Response) => {
     try {
-      const deploymentInfo = {
-        success: true,
-        note: 'Casper blockchain uses event-driven data access, not direct contract queries',
-        contracts: {
-          unified_dex: config.dexContractPackageHash,
-          router: config.routerContractPackageHash,
-          position_manager: config.positionManagerContractPackageHash,
-        },
-        tokens: config.tokens,
-        pools: [
-          {
-            name: 'TCSPR/USDT',
-            fee: 3000,
-            initialized: true
-          },
-          {
-            name: 'USDT/CDAI', 
-            fee: 3000,
-            initialized: true
-          }
-        ],
-        data_access_method: 'Events and Global State Queries',
-        fallback_calculations: true
-      };
-
-      res.json(deploymentInfo);
+      const { token0, token1, fee } = req.params;
+      const pool = await poolRepo.findByTokensAndFee(token0, token1, parseInt(fee));
+      
+      if (!pool) {
+        return res.status(404).json({ success: false, error: 'Pool not found' });
+      }
+      
+      res.json({ success: true, data: pool });
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/pools/stats
+   * Get pool statistics
+   */
+  app.get('/api/pools/stats', async (req: Request, res: Response) => {
+    try {
+      const pools = await poolRepo.findAll();
+      const stats = {
+        totalPools: pools.length,
+        initializedPools: pools.filter(p => p.initialized).length,
+        uninitializedPools: pools.filter(p => !p.initialized).length,
+        uniqueTokens: new Set([...pools.map(p => p.token0), ...pools.map(p => p.token1)]).size
+      };
+      
+      res.json({ success: true, data: stats });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== LIQUIDITY EVENT ENDPOINTS =====
+  
+  /**
+   * GET /api/liquidity-events
+   * Get liquidity events (mint/burn) with filtering
+   */
+  app.get('/api/liquidity-events', async (req: Request, res: Response) => {
+    try {
+      const { poolId, eventType, owner, limit = '50', offset = '0' } = req.query;
+      
+      let events: any[] = [];
+      
+      if (poolId) {
+        events = await liquidityRepo.findByPool(parseInt(poolId as string));
+      } else if (owner) {
+        events = await liquidityRepo.findByOwner(owner as string);
+      } else if (eventType) {
+        events = await liquidityRepo.findByEventType(eventType as 'mint' | 'burn');
+      } else {
+        // Get recent events from all pools
+        const pools = await poolRepo.findAll();
+        for (const pool of pools.slice(0, 10)) { // Limit to first 10 pools
+          const poolEvents = await liquidityRepo.findByPool(pool.id, 10);
+          events.push(...poolEvents);
+        }
+        events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedEvents = events.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedEvents,
+        total: events.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/liquidity-events/pool/:poolId
+   * Get liquidity events for specific pool
+   */
+  app.get('/api/liquidity-events/pool/:poolId', async (req: Request, res: Response) => {
+    try {
+      const { poolId } = req.params;
+      const events = await liquidityRepo.findByPool(parseInt(poolId));
+      
+      res.json({ success: true, data: events });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/liquidity-events/owner/:owner
+   * Get liquidity events for specific owner
+   */
+  app.get('/api/liquidity-events/owner/:owner', async (req: Request, res: Response) => {
+    try {
+      const { owner } = req.params;
+      const events = await liquidityRepo.findByOwner(owner);
+      
+      res.json({ success: true, data: events });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== COLLECT EVENT ENDPOINTS =====
+  
+  /**
+   * GET /api/collect-events
+   * Get fee collection events
+   */
+  app.get('/api/collect-events', async (req: Request, res: Response) => {
+    try {
+      const { poolId, owner, limit = '50', offset = '0' } = req.query;
+      
+      let events: any[] = [];
+      
+      if (poolId) {
+        events = await collectRepo.findByPool(parseInt(poolId as string));
+      } else if (owner) {
+        events = await collectRepo.findByOwner(owner as string);
+      } else {
+        // Get recent events from all pools
+        const pools = await poolRepo.findAll();
+        for (const pool of pools.slice(0, 10)) {
+          const poolEvents = await collectRepo.findByPool(pool.id, 10);
+          events.push(...poolEvents);
+        }
+        events.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedEvents = events.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedEvents,
+        total: events.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== TOKEN TRANSFER ENDPOINTS =====
+  
+  /**
+   * GET /api/token-transfers
+   * Get token transfer events
+   */
+  app.get('/api/token-transfers', async (req: Request, res: Response) => {
+    try {
+      const { tokenAddress, from, to, limit = '50', offset = '0' } = req.query;
+      
+      let transfers: any[] = [];
+      
+      if (tokenAddress) {
+        transfers = await tokenTransferRepo.findByToken(tokenAddress as string);
+      } else if (from || to) {
+        const address = (from || to) as string;
+        transfers = await tokenTransferRepo.findByAddress(address);
+      } else {
+        // Get recent transfers from known tokens
+        const tokens = await poolRepo.getUniqueTokens();
+        for (const token of tokens.slice(0, 5)) {
+          const tokenTransfers = await tokenTransferRepo.findByToken(token, 10);
+          transfers.push(...tokenTransfers);
+        }
+        transfers.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedTransfers = transfers.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedTransfers,
+        total: transfers.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/token-transfers/token/:tokenAddress
+   * Get transfers for specific token
+   */
+  app.get('/api/token-transfers/token/:tokenAddress', async (req: Request, res: Response) => {
+    try {
+      const { tokenAddress } = req.params;
+      const transfers = await tokenTransferRepo.findByToken(tokenAddress);
+      
+      res.json({ success: true, data: transfers });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/token-transfers/account/:account
+   * Get transfers for specific account (sent or received)
+   */
+  app.get('/api/token-transfers/account/:account', async (req: Request, res: Response) => {
+    try {
+      const { account } = req.params;
+      const transfers = await tokenTransferRepo.findByAddress(account);
+      
+      res.json({ success: true, data: transfers });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== TOKEN APPROVAL ENDPOINTS =====
+  
+  /**
+   * GET /api/token-approvals
+   * Get token approval events
+   */
+  app.get('/api/token-approvals', async (req: Request, res: Response) => {
+    try {
+      const { tokenAddress, owner, spender, limit = '50', offset = '0' } = req.query;
+      
+      let approvals: any[] = [];
+      
+      if (tokenAddress) {
+        approvals = await tokenApprovalRepo.findByToken(tokenAddress as string);
+      } else if (owner) {
+        approvals = await tokenApprovalRepo.findByOwner(owner as string);
+      } else if (spender) {
+        approvals = await tokenApprovalRepo.findBySpender(spender as string);
+      } else {
+        // Get recent approvals from known tokens
+        const tokens = await poolRepo.getUniqueTokens();
+        for (const token of tokens.slice(0, 5)) {
+          const tokenApprovals = await tokenApprovalRepo.findByToken(token, 10);
+          approvals.push(...tokenApprovals);
+        }
+        approvals.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedApprovals = approvals.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedApprovals,
+        total: approvals.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== POSITION ENDPOINTS =====
+  
+  /**
+   * GET /api/positions
+   * Get NFT positions
+   */
+  app.get('/api/positions', async (req: Request, res: Response) => {
+    try {
+      const { owner, poolId, limit = '50', offset = '0' } = req.query;
+      
+      let positions: any[] = [];
+      
+      if (owner) {
+        positions = await positionRepo.findByOwner(owner as string);
+      } else if (poolId) {
+        positions = await positionRepo.findByPool(parseInt(poolId as string));
+      } else {
+        // Get recent positions from all pools
+        const pools = await poolRepo.findAll();
+        for (const pool of pools.slice(0, 10)) {
+          const poolPositions = await positionRepo.findByPool(pool.id);
+          positions.push(...poolPositions);
+        }
+        positions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      }
+      
+      const limitNum = parseInt(limit as string);
+      const offsetNum = parseInt(offset as string);
+      const paginatedPositions = positions.slice(offsetNum, offsetNum + limitNum);
+      
+      res.json({
+        success: true,
+        data: paginatedPositions,
+        total: positions.length,
+        limit: limitNum,
+        offset: offsetNum
+      });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/positions/:tokenId
+   * Get specific position by token ID
+   */
+  app.get('/api/positions/:tokenId', async (req: Request, res: Response) => {
+    try {
+      const { tokenId } = req.params;
+      const position = await positionRepo.findByTokenId(tokenId);
+      
+      if (!position) {
+        return res.status(404).json({ success: false, error: 'Position not found' });
+      }
+      
+      res.json({ success: true, data: position });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/positions/owner/:owner
+   * Get positions for specific owner
+   */
+  app.get('/api/positions/owner/:owner', async (req: Request, res: Response) => {
+    try {
+      const { owner } = req.params;
+      const positions = await positionRepo.findByOwner(owner);
+      
+      res.json({ success: true, data: positions });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== ANALYTICS ENDPOINTS =====
+  
+  /**
+   * GET /api/analytics/volume
+   * Get trading volume analytics
+   */
+  app.get('/api/analytics/volume', async (req: Request, res: Response) => {
+    try {
+      const { poolId, timeframe = '24h' } = req.query;
+      
+      let events: any[] = [];
+      
+      if (poolId) {
+        events = await liquidityRepo.findByPool(parseInt(poolId as string));
+      } else {
+        // Get events from all pools
+        const pools = await poolRepo.findAll();
+        for (const pool of pools) {
+          const poolEvents = await liquidityRepo.findByPool(pool.id, 50);
+          events.push(...poolEvents);
+        }
+      }
+      
+      // Filter by timeframe
+      const now = new Date();
+      const timeframeMs = timeframe === '24h' ? 24 * 60 * 60 * 1000 : 
+                         timeframe === '7d' ? 7 * 24 * 60 * 60 * 1000 :
+                         30 * 24 * 60 * 60 * 1000; // 30d default
+      
+      const filteredEvents = events.filter(e => 
+        new Date(e.timestamp).getTime() > now.getTime() - timeframeMs
+      );
+      
+      const volume = {
+        totalEvents: filteredEvents.length,
+        mintEvents: filteredEvents.filter(e => e.eventType === 'mint').length,
+        burnEvents: filteredEvents.filter(e => e.eventType === 'burn').length,
+        timeframe
+      };
+      
+      res.json({ success: true, data: volume });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/analytics/liquidity
+   * Get liquidity analytics
+   */
+  app.get('/api/analytics/liquidity', async (req: Request, res: Response) => {
+    try {
+      const pools = await poolRepo.findAll();
+      
+      let totalLiquidityEvents = 0;
+      let recentMints = 0;
+      let recentBurns = 0;
+      
+      // Get events from all pools
+      for (const pool of pools) {
+        const events = await liquidityRepo.findByPool(pool.id, 100);
+        totalLiquidityEvents += events.length;
+        
+        const recentEvents = events.filter(e => 
+          new Date(e.timestamp).getTime() > Date.now() - 24 * 60 * 60 * 1000
+        );
+        
+        recentMints += recentEvents.filter(e => e.eventType === 'mint').length;
+        recentBurns += recentEvents.filter(e => e.eventType === 'burn').length;
+      }
+      
+      const analytics = {
+        totalPools: pools.length,
+        activePools: pools.filter(p => p.initialized).length,
+        totalLiquidityEvents,
+        recentMints,
+        recentBurns
+      };
+      
+      res.json({ success: true, data: analytics });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  // ===== SYSTEM ENDPOINTS =====
+  
+  /**
+   * GET /api/system/contracts
+   * Get deployed contract information
+   */
+  app.get('/api/system/contracts', async (req: Request, res: Response) => {
+    try {
+      const contractInfo = {
+        dex: {
+          packageHash: config.dexContractPackageHash,
+          name: 'UnifiedDEX',
+          type: 'core'
+        },
+        router: {
+          packageHash: config.routerContractPackageHash,
+          name: 'Router',
+          type: 'core'
+        },
+        positionManager: {
+          packageHash: config.positionManagerContractPackageHash,
+          name: 'PositionManager',
+          type: 'core'
+        },
+        tokens: config.tokens
+      };
+      
+      res.json({ success: true, data: contractInfo });
+    } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  /**
+   * GET /api/system/health
+   * System health check with database connectivity
+   */
+  app.get('/api/system/health', async (req: Request, res: Response) => {
+    try {
+      const pools = await poolRepo.findAll();
+      const health = {
+        status: 'healthy',
+        database: 'connected',
+        totalPools: pools.length,
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json({ success: true, data: health });
+    } catch (error: any) {
+      res.status(500).json({ 
+        success: false, 
+        data: { 
+          status: 'unhealthy', 
+          database: 'disconnected',
+          error: error.message 
+        } 
+      });
     }
   });
 }
