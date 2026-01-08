@@ -1,29 +1,32 @@
 import { themeConfig } from '@make-software/cspr-design';
 const dexColors = {
-  // Core surfaces
-  obsidian: '#0B0F14',        // Main dark background
-  obsidianSoft: '#121824',   // Cards / panels
-  obsidianLight: '#1A2233',  // Elevated surfaces
+  // --- Core Surfaces ---
+  obsidian: '#0B0F14',       // Deepest layer (Body background)
+  obsidianSoft: '#121824',   // Mid layer (Cards, Modals)
+  obsidianLight: '#1C2533',  // Top layer (Input fields, Hover states)
 
-  // Text & UI neutrals
-  pearl: '#F8FAFC',          // Primary text on dark
-  mist: '#CBD5E1',           // Secondary text
-  slate: '#94A3B8',          // Muted labels
-  charcoal: '#334155',       // Borders / dividers
-   arcaneBlue: '#3B82F6',
-  arcaneBlueSoft: '#60A5FA',
-  arcaneBlueDark: '#1E40AF',
-   mysticPurple: '#8B5CF6',
+  // --- Brand & Accents ---
+  arcaneBlue: '#3B82F6',     // Primary Action
+  arcaneBlueSoft: '#60A5FA', // Hover on Primary
+  arcaneBlueGlow: 'rgba(59, 130, 246, 0.15)', // Shadow/Glows
+
+  mysticPurple: '#8B5CF6',   // Secondary Brand (LPs/Pools)
   mysticPurpleSoft: '#A78BFA',
-  mysticPurpleDark: '#5B21B6',
-    gold: '#F59E0B',
-  goldSoft: '#FCD34D',
-  goldDark: '#B45309',
-  success: '#22C55E',
-  error: '#EF4444',
-  warning: '#F97316',
-  info: '#38BDF8',
-   white: '#121824',
+
+  // --- Status ---
+  success: '#10B981',        // Vibrant emerald for profit/In-Range
+  error: '#F43F5E',          // Rose-red for danger/Price drops
+  warning: '#F59E0B',        // Amber for slippage/Out-of-Range
+  
+  // --- Neutrals & Text ---
+  pearl: '#F8FAFC',          // Headlines
+  mist: '#E2E8F0',           // Body text
+  slate: '#94A3B8',          // Labels / Placeholders
+  charcoal: '#334155',       // Subtle Borders
+  
+  // Logic Fix: Mapping white to soft obsidian for card backgrounds 
+  // allows components using theme.dexColors.white to work in dark mode
+  white: '#121824',
   black: '#000000'
 };
 
@@ -43,7 +46,7 @@ export const AppTheme = {
       contentOnFill: dexColors.pearl,
 
       blue500: dexColors.arcaneBlue,
-      blue600: dexColors.arcaneBlueDark,
+      // blue600: dexColors.arcaneBlueDark,
       blue100: dexColors.arcaneBlueSoft,
 
       green500: dexColors.success,
@@ -53,3 +56,36 @@ export const AppTheme = {
     dexColors
   },
 };
+
+
+
+
+
+
+// export const AppTheme = {
+//   dark: { // Renamed to 'dark' as these are dark-mode values
+//     ...themeConfig.dark, 
+//     styleguideColors: {
+//       ...themeConfig.dark.styleguideColors,
+
+//       // Backgrounds
+//       backgroundPrimary: dexColors.obsidian,
+//       backgroundSecondary: dexColors.obsidianSoft,
+//       backgroundTertiary: dexColors.obsidianLight,
+
+//       // Text
+//       contentPrimary: dexColors.pearl,
+//       contentSecondary: dexColors.mist,
+//       contentTertiary: dexColors.slate,
+      
+//       // Borders
+//       borderPrimary: dexColors.charcoal,
+
+//       // Brand Overrides
+//       blue500: dexColors.arcaneBlue,
+//       blue600: dexColors.arcaneBlueDark,
+//       blue100: dexColors.arcaneBlueSoft,
+//     },
+//     dexColors // Accessible via props.theme.dexColors
+//   },
+// };

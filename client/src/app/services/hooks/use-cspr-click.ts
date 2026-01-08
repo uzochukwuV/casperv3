@@ -11,6 +11,7 @@ const useCsprClick = () => {
 		clickRef?.on(
 			'csprclick:signed_in',
 			async (evt: CsprClickEvent) => {
+				console.log('Signed in event received:', evt);
 				await setActiveAccount(evt.account);
 			}
 		);

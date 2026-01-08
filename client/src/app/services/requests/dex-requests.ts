@@ -32,7 +32,7 @@ export const prepareSwapTransaction = async (
 	recipient: string,
 	zeroForOne: boolean,
 	amountSpecified: string,
-	sqrtPriceLimitX96: string = '0'
+	sqrtPriceLimitX96: string
 ): Promise<Transaction> => {
 	const token0Key = Key.newKey(`account-hash-${token0}`);
 	const token1Key = Key.newKey(`account-hash-${token1}`);
@@ -69,8 +69,8 @@ export const prepareMintTransaction = async (
 	tickLower: number,
 	tickUpper: number,
 	amount: string,
-	amount0Min: string = '0',
-	amount1Min: string = '0'
+	amount0Min: string , 
+	amount1Min: string 
 ): Promise<Transaction> => {
 	const token0Key = Key.newKey(`account-hash-${token0}`);
 	const token1Key = Key.newKey(`account-hash-${token1}`);
@@ -374,5 +374,81 @@ export const getMockTokenBalances = (): TokenBalance[] => {
 			balance: '25000',
 			decimals: 18,
 		},
+	];
+};
+
+// ============================================
+// PRICE CALCULATION UTILITIES
+// ============================================
+
+/**
+ * Fee tiers available in the DEX
+ */
+export const FEE_TIERS = [
+	{ value: 500, label: '0.05%', description: 'Best for stable pairs', tickSpacing: 10 },
+	{ value: 3000, label: '0.3%', description: 'Best for most pairs', tickSpacing: 60 },
+	{ value: 10000, label: '1%', description: 'Best for exotic pairs', tickSpacing: 200 },
+];
+
+/**
+ * Convert price to sqrtPriceX96 format
+ * price = (sqrtPriceX96 / 2^96)^2
+ * sqrtPriceX96 = sqrt(price) * 2^96
+ */
+export const priceToSqrtPriceX96 = (price: number): string => {
+	const sqrtPrice = Math.sqrt(price);
+	const Q96 = Math.pow(2, 96);
+	const sqrtPriceX96 = BigInt(Math.floor(sqrtPrice * Q96));
+	return sqrtPriceX96.toString();
+};
+
+/**
+ * Convert sqrtPriceX96 to human-readable price
+ */
+export const sqrtPriceX96ToPrice = (sqrtPriceX96: string): number => {
+	const Q96 = Math.pow(2, 96);
+	const sqrtPrice = Number(BigInt(sqrtPriceX96)) / Q96;
+	return sqrtPrice * sqrtPrice;
+};
+
+/**
+ * Calculate tick from price
+ * tick = log_1.0001(price)
+ */
+export const priceToTick = (price: number): number => {
+	return Math.floor(Math.log(price) / Math.log(1.0001));
+};
+
+/**
+ * Calculate price from tick
+ * price = 1.0001^tick
+ */
+export const tickToPrice = (tick: number): number => {
+	return Math.pow(1.0001, tick);
+};
+
+/**
+ * Round tick to nearest tick spacing
+ */
+export const roundTickToSpacing = (tick: number, tickSpacing: number): number => {
+	return Math.round(tick / tickSpacing) * tickSpacing;
+};
+
+/**
+ * Get tick spacing for fee tier
+ */
+export const getTickSpacing = (fee: number): number => {
+	const tier = FEE_TIERS.find(t => t.value === fee);
+	return tier?.tickSpacing || 60;
+};
+
+/**
+ * Get available tokens for pool creation
+ */
+export const getAvailableTokensForPool = () => {
+	return [
+		{ symbol: 'TCSPR', name: 'Test Wrapped CSPR', contractHash: config.wcspr_token_contract_hash, decimals: 9 },
+		{ symbol: 'USDT', name: 'Test USD Tether', contractHash: config.usdt_token_contract_hash, decimals: 6 },
+		{ symbol: 'CDAI', name: 'Test Compound DAI', contractHash: config.cdai_token_contract_hash, decimals: 18 },
 	];
 };

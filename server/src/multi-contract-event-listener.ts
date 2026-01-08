@@ -8,6 +8,22 @@ import { TokenApprovalRepository } from './repository/token-approval.repository'
 import { PositionRepository } from './repository/position.repository';
 import { CollectEventRepository } from './repository/collect-event.repository';
 
+// Helper function to strip address prefixes
+function stripAddressPrefix(address: string): string {
+  if (!address) return address;
+
+  // Remove common Casper address prefixes
+  const prefixes = ['account-hash-', 'hash-', 'contract-', 'uref-'];
+
+  for (const prefix of prefixes) {
+    if (address.startsWith(prefix)) {
+      return address.substring(prefix.length);
+    }
+  }
+
+  return address;
+}
+
 interface ContractConfig {
   packageHash: string;
   name: string;
@@ -145,6 +161,7 @@ class MultiContractEventListener {
   private async handleDEXEvent(event: any) {
     const eventName = event.data?.name;
     const eventData = event.data?.data;
+    console.log('🔎 DEX Event Details:', event);
 
     switch (eventName) {
       case 'PoolCreated':
@@ -270,20 +287,23 @@ class MultiContractEventListener {
   }
 
   private async addTokenContract(tokenAddress: string) {
-    if (this.tokenContracts.has(tokenAddress)) {
+    // Strip any address prefix before using
+    const cleanAddress = stripAddressPrefix(tokenAddress);
+
+    if (this.tokenContracts.has(cleanAddress)) {
       return; // Already monitoring
     }
 
     const tokenContract: ContractConfig = {
-      packageHash: tokenAddress,
-      name: `Token-${tokenAddress.slice(0, 8)}`,
+      packageHash: cleanAddress,
+      name: `Token-${cleanAddress.slice(0, 8)}`,
       type: 'token'
     };
 
-    this.tokenContracts.set(tokenAddress, tokenContract);
+    this.tokenContracts.set(cleanAddress, tokenContract);
     await this.connectToContract(tokenContract);
-    
-    console.log(`➕ Added token contract to monitoring: ${tokenAddress}`);
+
+    console.log(`➕ Added token contract to monitoring: ${cleanAddress}`);
   }
 
   private async loadExistingTokenContracts() {
@@ -337,11 +357,11 @@ class MultiContractEventListener {
   private async storePoolCreated(eventData: any, extra: any) {
     try {
       const pool = await this.poolRepository.save({
-        token0: eventData.token0,
-        token1: eventData.token1,
+        token0: stripAddressPrefix(eventData.token0),
+        token1: stripAddressPrefix(eventData.token1),
         fee: eventData.fee,
         tickSpacing: eventData.tick_spacing,
-        poolAddress: eventData.pool,
+        poolAddress: stripAddressPrefix(eventData.pool),
         deployHash: extra.deploy_hash,
         initialized: false
       });

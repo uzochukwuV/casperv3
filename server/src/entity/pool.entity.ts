@@ -6,11 +6,11 @@ export class Pool {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'varchar', length: 64 })
+  @Column({ type: 'varchar', length: 100 })
   @Index()
   token0: string;
 
-  @Column({ type: 'varchar', length: 64 })
+  @Column({ type: 'varchar', length: 100 })
   @Index()
   token1: string;
 
@@ -20,7 +20,7 @@ export class Pool {
   @Column({ type: 'int' })
   tickSpacing: number;
 
-  @Column({ type: 'varchar', length: 64 })
+  @Column({ type: 'varchar', length: 100 })
   poolAddress: string;
 
   @Column({ type: 'varchar', length: 78, nullable: true })
